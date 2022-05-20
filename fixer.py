@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import csv
 
-#zamiana miejscami kolumn
+#switch column places
 def df_column_switch(df, column1, column2):
     i = list(df.columns)
     a, b = i.index(column1), i.index(column2)
@@ -13,22 +13,22 @@ def df_column_switch(df, column1, column2):
     return df
 
 if(len(sys.argv) >= 1):
-    filename = sys.argv[1] #pobieranie ścieżki
+    filename = sys.argv[1] #take the path file
 
-    #nazywanie nowego pliku
+    #name the new file
     if(len(sys.argv) <= 2):
         newFileName = "poprawiony.csv"
     else:
         newFileName = str(sys.argv[2])+".csv"
 
-    #lista kolumn do obłożenia cudzysłowami
+    #columns that had to have the ""
     quotes = ["Nadawca/Odbiorca","Opis","Rachunek nadawcy","Odbiorca","Kwota", "Nadawca","Saldo po operacji","Rachunek odbiorcy","Rodzaj operacji"]
 
-    #odczytywanie danych z bazowego pliku
+    #read data from csv
     df = pd.read_csv(filename, index_col=0)
 
 
-    #usuwanie spacji po numerze konta
+    #delete spaces from the account number
     ##########################################
     for index, row in df.iterrows():
         tmp = df.at[index, 'Rachunek odbiorcy']
@@ -42,7 +42,7 @@ if(len(sys.argv) >= 1):
         df.at[index, 'Rachunek nadawcy'] = tmp
     ###########################################
 
-    #Zamiana meijscami kolumn
+    #switch the columns
     #############################################################
     df = df_column_switch(df, 'Data operacji', 'Data księgowania')
     df = df_column_switch(df, 'Data operacji', 'Nadawca/Odbiorca')
@@ -50,18 +50,18 @@ if(len(sys.argv) >= 1):
     df = df_column_switch(df, 'Data operacji', 'Kwota')
     #############################################################
 
-    #Cudzysłowia w kolumnach
+    #add the quotes into specific columns
     for col in quotes:
         df[col] = '"' + df[col] + '"'
 
-    #Tworzenie przejściowego bo panda ma raka
+    #the following has to be done to delete unnecessary quotes, as the database wouldn't accept them
     df.to_csv("przejsciowy.csv", quoting=csv.QUOTE_MINIMAL, quotechar='"')
 
-    #ostatnia faza, tworzenie nowego pliku
+    #new file
     last = open("przejsciowy.csv", 'r', encoding="utf8")
     lastest = open(newFileName, 'w', encoding="utf8")
 
-    #dla pierwszej lini te wszystkie headery z dobrymi cudzysłowiami
+    #make new headers
     count = 0
     while True:
         line = last.readline()
@@ -71,7 +71,7 @@ if(len(sys.argv) >= 1):
         else:
             if not line:
                 break
-            line = line.replace("\"\"", "") #usuwanie podwójnych cudzysłowów bo panda ma raka znowu
+            line = line.replace("\"\"", "") #delete the double quotes
             lastest.write(line)
 
     
